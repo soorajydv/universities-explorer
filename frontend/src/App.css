@@ -1,0 +1,111 @@
+:root {
+  --bg: #0b0c10;
+  --surface: #1f2128;
+  --surface2: #171921;
+  --surface3: #232631;
+  --border: #2a2e38;
+  --border2: #3a3f4b;
+  --text: #e6e6e6;
+  --text2: #a8aebd;
+  --text3: #7a8294;
+  --accent: #6c5ce7;
+  --accent2: #6c5ce7;
+  --accent3: #00cec9;
+  --success: #00b894;
+  --warning: #fdcb6e;
+  --radius: 12px;
+}
+
+/* Light Theme Variables */
+[data-theme="light"] {
+  --bg: #f8f9fa;
+  --surface: #ffffff;
+  --surface2: #f8f9fa;
+  --surface3: #e9ecef;
+  --border: #dee2e6;
+  --border2: #ced4da;
+  --text: #212529;
+  --text2: #6c757d;
+  --text3: #adb5bd;
+  --accent: #0d6efd;
+  --accent2: #6f42c1;
+  --accent3: #fd7e14;
+  --success: #198754;
+  --warning: #ffc107;
+  --radius: 12px;
+}
+
+body {
+  margin: 0;
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.App {
+  min-height: 100vh;
+}
+
+/* Skeleton animation */
+.skeleton {
+  background: linear-gradient(90deg, var(--surface2) 25%, var(--surface) 50%, var(--surface2) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Fade in animation */
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border2);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .uni-card {
+    cursor: default !important;
+  }
+  
+  .uni-card:hover {
+    transform: none !important;
+    border-color: var(--border) !important;
+    box-shadow: none !important;
+  }
+}
+
+/* Mobile filter button */
+@media (max-width: 1024px) {
+  .mobile-filter-btn {
+    display: inline-flex !important;
+  }
+}
