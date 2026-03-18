@@ -154,6 +154,16 @@ export default function FilterSidebar({ filters, onChange, meta, activeCount }) 
           {(meta?.levels || []).map(l => (
             <option key={l} value={l}>{l}</option>
           ))}
+          {!(meta?.levels?.length) && (
+            <>
+              <option value="Bachelor">Bachelor's</option>
+              <option value="Master">Master's</option>
+              <option value="PhD">PhD</option>
+              <option value="Associate">Associate</option>
+              <option value="Diploma">Diploma</option>
+              <option value="Certificate">Certificate</option>
+            </>
+          )}
         </select>
       </div>
 

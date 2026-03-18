@@ -3,6 +3,7 @@ import { useUniversities, useFilterMeta, useStats } from '../hooks/useApi';
 import UniversityCard from '../components/UniversityCard';
 import FilterSidebar from '../components/FilterSidebar';
 import UniversityModal from '../components/UniversityModal';
+import Navbar from '../components/Navbar';
 
 const SORT_OPTIONS = [
   { value: 'priority:asc',    label: 'Priority (Default)' },
@@ -17,55 +18,114 @@ const LIMITS = [12, 24, 48];
 
 const s = {
   page: { minHeight: '100vh', background: 'var(--bg)' },
-  nav: {
+  navbar: {
     position: 'sticky', top: 0, zIndex: 100,
-    background: 'rgba(10,10,15,0.92)',
+    background: 'linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.85))',
     backdropFilter: 'blur(16px)',
-    borderBottom: '1px solid var(--border)',
+    '-webkit-backdrop-filter': 'blur(16px)',
+    borderBottom: '1px solid rgba(0,0,0,0.08)',
     padding: '0 24px',
-    height: 60,
+    height: 64,
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    boxShadow: '0 2px 20px rgba(0,0,0,0.08)',
   },
-  logo: {
-    fontFamily: 'Syne', fontSize: 20, fontWeight: 800,
-    background: 'linear-gradient(135deg, var(--accent2), var(--accent3))',
+  'navbar[data-theme="dark"]': {
+    background: 'linear-gradient(180deg, rgba(17,19,25,0.95), rgba(17,19,25,0.85))',
+    borderBottom: '1px solid rgba(255,255,255,0.08)',
+    boxShadow: '0 2px 20px rgba(0,0,0,0.3)',
+  },
+  navbarLogo: {
+    display: 'flex', alignItems: 'center', gap: 16,
+    fontFamily: 'Inter', fontWeight: 700, letterSpacing: '-0.5px',
+    textDecoration: 'none', color: 'var(--text)', transition: 'all 0.3s ease',
+  },
+  navbarLogoHover: {
+    transform: 'translateY(-1px)',
+  },
+  navbarBrand: {
+    fontSize: 20, background: 'linear-gradient(135deg, var(--accent2), var(--accent3))',
     WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-    letterSpacing: '-0.5px',
+    backgroundClip: 'text',
   },
-  statsBar: {
-    display: 'flex', gap: 16, alignItems: 'center',
+  navbarSubtitle: {
+    fontSize: 12, color: 'var(--text3)', fontWeight: 500,
+    borderLeft: '1px solid var(--border)', paddingLeft: 16,
   },
-  statPill: {
-    fontSize: 12, color: 'var(--text2)',
-    background: 'var(--surface)',
-    border: '1px solid var(--border)',
-    borderRadius: 20, padding: '4px 12px',
+  navbarActions: {
+    display: 'flex', alignItems: 'center', gap: 12,
+  },
+  navbarThemeToggle: {
+    background: 'var(--surface)', border: '1px solid var(--border)',
+    color: 'var(--text)', borderRadius: 12, padding: '8px 12px',
+    fontSize: 13, fontWeight: 600, cursor: 'pointer',
+    transition: 'all 0.2s ease', display: 'flex', alignItems: 'center', gap: 8,
+  },
+  navbarThemeToggleHover: {
+    borderColor: 'var(--accent)', transform: 'translateY(-1px)',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+  },
+  navbarStats: {
+    display: 'flex', alignItems: 'center', gap: 16, fontSize: 12, color: 'var(--text2)',
+  },
+  navbarStat: {
+    background: 'var(--surface)', border: '1px solid var(--border)',
+    borderRadius: 20, padding: '6px 12px', fontWeight: 600,
   },
 
   container: { maxWidth: 1360, margin: '0 auto', padding: '24px' },
-  heroText: { marginBottom: 24 },
-  heroTitle: { fontFamily: 'Syne', fontSize: 28, fontWeight: 800, color: 'var(--text)', marginBottom: 4 },
-  heroSub: { fontSize: 14, color: 'var(--text2)' },
+  heroSection: {
+    padding: '32px 24px', textAlign: 'center',
+    background: 'linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0))',
+    borderBottom: '1px solid var(--border)',
+  },
+  'heroSection[data-theme="light"]': {
+    background: 'linear-gradient(180deg, rgba(0,0,0,0.02), rgba(0,0,0,0))',
+    borderBottom: '1px solid var(--border)',
+  },
+  heroTitle: {
+    fontFamily: 'Inter', fontSize: 32, fontWeight: 800, color: 'var(--text)',
+    margin: '0 0 8px 0', letterSpacing: '-0.5px',
+  },
+  heroSubtitle: {
+    fontSize: 16, color: 'var(--text2)', margin: 0, fontWeight: 500,
+  },
 
   toolbar: {
     display: 'flex', alignItems: 'center', gap: 12,
     marginBottom: 20, flexWrap: 'wrap',
+    background: 'var(--surface)',
+    border: '1px solid var(--border)',
+    borderRadius: 12,
+    padding: 12,
   },
   searchWrap: {
     flex: 1, minWidth: 220,
     position: 'relative',
+    display: 'flex',
+    alignItems: 'center',
   },
   searchInput: {
     width: '100%',
-    background: 'var(--surface)',
+    background: 'var(--surface2)',
     border: '1px solid var(--border)',
-    borderRadius: 10, padding: '10px 14px 10px 38px',
-    color: 'var(--text)', fontSize: 14, outline: 'none',
-    transition: 'border-color 0.2s',
+    borderRadius: 8,
+    padding: '10px 14px 10px 38px',
+    color: 'var(--text)',
+    fontSize: 14,
+    outline: 'none',
+    transition: 'all 0.2s ease',
+    border: 'none',
+    boxShadow: 'none',
+  },
+  searchInputFocus: {
+    background: 'var(--surface)',
+    borderColor: 'var(--accent)',
+    boxShadow: '0 0 0 3px rgba(108, 92, 231, 0.1)',
   },
   searchIcon: {
     position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)',
     color: 'var(--text3)', pointerEvents: 'none',
+    zIndex: 1,
   },
   select: {
     background: 'var(--surface)',
@@ -232,16 +292,13 @@ export default function UniversitiesPage() {
 
   return (
     <div style={s.page}>
-      {/* Nav */}
-      <nav style={s.nav}>
-        <div style={s.logo}>UniExplorer</div>
-      </nav>
+      <Navbar />
 
       <div style={s.container}>
-        {/* Hero */}
-        <div style={s.heroText}>
+        {/* Hero Section */}
+        <div style={s.heroSection}>
           <h1 style={s.heroTitle}>Find Your University</h1>
-          <p style={s.heroSub}>
+          <p style={s.heroSubtitle}>
             Explore {stats?.total?.toLocaleString() || 'thousands of'} universities across {stats?.countries || 'the world'} countries
           </p>
         </div>
@@ -258,8 +315,16 @@ export default function UniversitiesPage() {
               placeholder="Search universities, locations..."
               value={searchInput}
               onChange={e => setSearchInput(e.target.value)}
-              onFocus={e => { e.target.style.borderColor = 'var(--accent)'; }}
-              onBlur={e => { e.target.style.borderColor = 'var(--border)'; }}
+              onFocus={e => { 
+                e.target.style.background = 'var(--surface)';
+                e.target.style.borderColor = 'var(--accent)';
+                e.target.style.boxShadow = '0 0 0 3px rgba(108, 92, 231, 0.1)';
+              }}
+              onBlur={e => { 
+                e.target.style.background = 'var(--surface2)';
+                e.target.style.borderColor = 'var(--border)';
+                e.target.style.boxShadow = 'none';
+              }}
             />
           </div>
 

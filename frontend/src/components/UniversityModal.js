@@ -1,139 +1,345 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
-const s = {
-  overlay: {
-    position: 'fixed', inset: 0,
-    background: 'rgba(0,0,0,0.85)',
-    backdropFilter: 'blur(6px)',
-    zIndex: 1000,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  modal: {
-    background: 'var(--surface)',
-    border: '1px solid var(--border)',
-    borderRadius: 16,
-    width: '100%',
-    maxWidth: 780,
-    maxHeight: '90vh',
-    overflow: 'hidden',
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  header: {
-    position: 'relative',
-    height: 180,
-    flexShrink: 0,
-    background: 'var(--surface2)',
-    overflow: 'hidden',
-  },
-  bannerImg: { width: '100%', height: '100%', objectFit: 'cover', opacity: 0.6 },
-  overlay2: {
-    position: 'absolute', inset: 0,
-    background: 'linear-gradient(to top, rgba(17,17,24,0.95) 30%, transparent 100%)',
-  },
-  closeBtn: {
-    position: 'absolute', top: 12, right: 12,
-    width: 36, height: 36,
-    background: 'rgba(0,0,0,0.5)',
-    border: '1px solid var(--border)',
-    borderRadius: 8,
-    color: 'var(--text)',
-    fontSize: 18,
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    cursor: 'pointer',
-    zIndex: 10,
-  },
-  headerContent: {
-    position: 'absolute', bottom: 0, left: 0, right: 0,
-    padding: '0 24px 16px',
-    display: 'flex', alignItems: 'flex-end', gap: 14,
-  },
-  logoBox: {
-    width: 60, height: 60,
-    background: 'var(--surface)',
-    borderRadius: 12,
-    border: '2px solid var(--border)',
-    overflow: 'hidden',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    flexShrink: 0,
-  },
-  logoImg: { width: 48, height: 48, objectFit: 'contain' },
-  titleArea: { flex: 1, minWidth: 0 },
-  uniName: { fontFamily: 'Syne', fontSize: 18, fontWeight: 800, color: '#fff', lineHeight: 1.2 },
-  uniSub: { fontSize: 12, color: 'rgba(255,255,255,0.6)', marginTop: 2 },
+/* ─────────────────────────────────────────────────────────────────
+   All colours reference the app's existing CSS custom properties:
+   --surface, --surface2, --border, --text, --text2, --text3,
+   --accent, --accent2, --accent3, --success, --warning
+   The component is 100% theme-agnostic — it works in dark AND light
+   mode automatically as long as those vars are defined globally.
+   ───────────────────────────────────────────────────────────────── */
 
-  body: { overflowY: 'auto', padding: 24, flex: 1 },
+const MODAL_CSS = `
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap');
 
-  grid2: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 24 },
-  statBox: {
-    background: 'var(--surface2)', borderRadius: 10,
-    padding: '14px 16px', textAlign: 'center',
-  },
-  statVal: { fontFamily: 'Syne', fontSize: 20, fontWeight: 700, color: 'var(--accent2)' },
-  statLabel: { fontSize: 11, color: 'var(--text3)', marginTop: 2, textTransform: 'uppercase', letterSpacing: '0.5px' },
+  .um-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    font-family: 'DM Sans', sans-serif;
+  }
 
-  section: { marginBottom: 24 },
-  sectionTitle: {
-    fontFamily: 'Syne', fontSize: 13, fontWeight: 700,
-    color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '1px',
-    marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8,
-  },
-  rankGrid: { display: 'flex', flexWrap: 'wrap', gap: 8 },
-  rankChip: {
-    background: 'rgba(108,92,231,0.1)', border: '1px solid rgba(108,92,231,0.3)',
-    borderRadius: 8, padding: '6px 12px',
-  },
-  rankVal: { fontFamily: 'Syne', fontSize: 14, fontWeight: 700, color: 'var(--accent2)' },
-  rankSub: { fontSize: 10, color: 'var(--text3)', marginTop: 1 },
+  .um-modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    width: 100%;
+    max-width: 1380px;
+    max-height: 92vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05), 0 10px 30px rgba(0,0,0,0.12), 0 32px 80px rgba(0,0,0,0.15);
+    animation: um-in 0.28s cubic-bezier(0.34,1.15,0.64,1) forwards;
+  }
 
-  courseTab: {
-    display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap',
-  },
-  tabBtn: (active) => ({
-    fontSize: 12, fontWeight: 600, padding: '5px 14px', borderRadius: 20,
-    background: active ? 'var(--accent)' : 'var(--surface2)',
-    color: active ? '#fff' : 'var(--text2)',
-    border: `1px solid ${active ? 'var(--accent)' : 'var(--border)'}`,
-    cursor: 'pointer',
-    transition: 'all 0.15s',
-  }),
-  courseList: { display: 'flex', flexDirection: 'column', gap: 6 },
-  courseRow: {
-    background: 'var(--surface2)', borderRadius: 8,
-    padding: '10px 14px', display: 'flex', justifyContent: 'space-between',
-    alignItems: 'center', gap: 8,
-  },
-  courseName: { fontSize: 13, color: 'var(--text)', flex: 1 },
-  courseMeta: { fontSize: 11, color: 'var(--text3)', textAlign: 'right' },
+  @keyframes um-in {
+    from { opacity:0; transform:scale(0.96) translateY(14px); }
+    to   { opacity:1; transform:scale(1)    translateY(0);    }
+  }
 
-  scholarCard: {
-    background: 'rgba(0,184,148,0.08)', border: '1px solid rgba(0,184,148,0.2)',
-    borderRadius: 10, padding: '12px 16px', marginBottom: 8,
-  },
-  scholarName: { fontSize: 13, fontWeight: 600, color: 'var(--success)', marginBottom: 6 },
-  scholarDetail: { fontSize: 12, color: 'var(--text2)', display: 'flex', gap: 12, flexWrap: 'wrap' },
+  /* ── HEADER ── */
+  .um-header {
+    position: relative;
+    height: 220px;
+    flex-shrink: 0;
+    overflow: hidden;
+    background: var(--surface2);
+  }
+  .um-banner-img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    opacity: 0.45;
+  }
+  .um-banner-fallback {
+    position: absolute; inset: 0;
+    background: linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--accent2) 28%, var(--surface2)),
+      color-mix(in srgb, var(--accent)  18%, var(--surface2))
+    );
+  }
+  .um-banner-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 52px 52px;
+    opacity: 0.5;
+  }
+  .um-banner-grad {
+    position: absolute; inset: 0;
+    background: linear-gradient(
+      to top,
+      var(--surface) 0%,
+      color-mix(in srgb, var(--surface) 50%, transparent) 42%,
+      transparent 100%
+    );
+  }
 
-  salaryRow: {
-    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-    padding: '8px 0', borderBottom: '1px solid var(--border)',
-  },
-  salaryJob: { fontSize: 13, color: 'var(--text)' },
-  salaryAmt: { fontSize: 13, fontWeight: 600, color: 'var(--success)', fontFamily: 'Syne' },
+  .um-close {
+    position: absolute; top: 14px; right: 14px;
+    width: 36px; height: 36px;
+    background: color-mix(in srgb, var(--surface) 85%, transparent);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    color: var(--text2);
+    font-size: 15px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; z-index: 10;
+    transition: background 0.15s, color 0.15s;
+  }
+  .um-close:hover { background: var(--surface2); color: var(--text); }
 
-  intakeChip: (idx) => ({
-    background: ['rgba(108,92,231,0.15)', 'rgba(253,121,168,0.15)'][idx % 2],
-    border: `1px solid ${['rgba(108,92,231,0.3)', 'rgba(253,121,168,0.3)'][idx % 2]}`,
-    borderRadius: 8, padding: '10px 16px', marginBottom: 8,
-  }),
-  intakeName: { fontSize: 13, fontWeight: 600, color: 'var(--accent2)', marginBottom: 4 },
-  intakeDesc: { fontSize: 12, color: 'var(--text2)' },
-};
+  .um-header-content {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: 0 28px 22px;
+    display: flex; align-items: flex-end; gap: 18px;
+  }
+  .um-logo-box {
+    width: 70px; height: 70px;
+    background: var(--surface);
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.14);
+  }
+  .um-logo-img { width: 54px; height: 54px; object-fit: contain; }
+  .um-title-area { flex: 1; min-width: 0; }
+
+  .um-uni-name {
+    font-family: 'Syne', 'DM Sans', sans-serif;
+    font-size: 24px; font-weight: 800;
+    color: var(--text);
+    line-height: 1.2; letter-spacing: -0.3px;
+  }
+  .um-uni-sub { font-size: 13px; color: var(--text3); margin-top: 4px; }
+
+  .um-rank-badge {
+    background: color-mix(in srgb, var(--accent2) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent2) 32%, transparent);
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 11px; font-weight: 700;
+    color: var(--accent2);
+    letter-spacing: 0.6px; text-transform: uppercase;
+    align-self: flex-end; margin-bottom: 6px;
+    white-space: nowrap; flex-shrink: 0;
+  }
+
+  /* ── BODY ── */
+  .um-body { flex: 1; display: flex; overflow: hidden; }
+
+  /* ── SIDEBAR ── */
+  .um-sidebar {
+    width: 290px; flex-shrink: 0;
+    border-right: 1px solid var(--border);
+    padding: 22px 18px;
+    overflow-y: auto;
+    display: flex; flex-direction: column; gap: 22px;
+    background: color-mix(in srgb, var(--surface2) 55%, var(--surface));
+  }
+
+  /* ── SECTION ── */
+  .um-section { display: flex; flex-direction: column; gap: 10px; }
+  .um-section-title {
+    font-size: 10px; font-weight: 700;
+    color: var(--text3);
+    text-transform: uppercase; letter-spacing: 1.6px;
+    display: flex; align-items: center; gap: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .um-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    flex-shrink: 0;
+  }
+
+  /* ── STAT BOX ── */
+  .um-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .um-stat-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 10px; text-align: center;
+    transition: border-color 0.18s;
+  }
+  .um-stat-box:hover { border-color: color-mix(in srgb, var(--accent2) 45%, var(--border)); }
+  .um-stat-val {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px; font-weight: 800; line-height: 1; letter-spacing: -0.5px;
+  }
+  .um-stat-label {
+    font-size: 9.5px; color: var(--text3);
+    margin-top: 4px; text-transform: uppercase;
+    letter-spacing: 0.8px; line-height: 1.3;
+  }
+
+  /* ── RANKINGS ── */
+  .um-rank-chip {
+    background: color-mix(in srgb, var(--accent2) 8%, var(--surface));
+    border: 1px solid color-mix(in srgb, var(--accent2) 22%, var(--border));
+    border-radius: 10px; padding: 10px 13px;
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+    transition: border-color 0.15s;
+  }
+  .um-rank-chip:hover { border-color: color-mix(in srgb, var(--accent2) 50%, var(--border)); }
+  .um-rank-val {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px; font-weight: 800; color: var(--accent2);
+  }
+  .um-rank-sub { font-size: 11px; color: var(--text3); text-align: right; }
+
+  /* ── INTAKES ── */
+  .um-intake-chip {
+    border-radius: 10px; padding: 12px 13px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  .um-intake-chip.alt-a {
+    background: color-mix(in srgb, var(--accent) 7%, var(--surface));
+    border-color: color-mix(in srgb, var(--accent) 28%, var(--border));
+  }
+  .um-intake-chip.alt-b {
+    background: color-mix(in srgb, var(--success) 7%, var(--surface));
+    border-color: color-mix(in srgb, var(--success) 28%, var(--border));
+  }
+  .um-intake-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px; font-weight: 700;
+    color: var(--accent2); margin-bottom: 5px;
+  }
+  .um-intake-desc { font-size: 12px; color: var(--text2); line-height: 1.6; }
+
+  /* ── MAIN ── */
+  .um-main {
+    flex: 1; padding: 24px 26px;
+    overflow-y: auto;
+    display: flex; flex-direction: column; gap: 26px;
+  }
+
+  /* ── TABS ── */
+  .um-tab-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .um-tab {
+    font-size: 12px; font-weight: 600;
+    padding: 5px 15px; border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text2);
+    cursor: pointer; transition: all 0.15s; letter-spacing: 0.15px;
+  }
+  .um-tab:hover { border-color: var(--accent2); color: var(--accent2); }
+  .um-tab.active {
+    background: color-mix(in srgb, var(--accent2) 14%, var(--surface));
+    border-color: color-mix(in srgb, var(--accent2) 45%, transparent);
+    color: var(--accent2);
+  }
+
+  /* ── COURSE CARDS ── */
+  .um-course-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(265px, 1fr));
+    gap: 9px;
+  }
+  .um-course-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 11px; padding: 13px 15px;
+    display: flex; flex-direction: column; gap: 5px;
+    transition: border-color 0.18s, background 0.18s;
+  }
+  .um-course-card:hover {
+    background: color-mix(in srgb, var(--accent2) 6%, var(--surface2));
+    border-color: color-mix(in srgb, var(--accent2) 35%, var(--border));
+  }
+  .um-course-name { font-size: 13px; color: var(--text); font-weight: 500; line-height: 1.4; }
+  .um-course-m1   { font-size: 12px; color: var(--accent2); font-weight: 600; }
+  .um-course-m2   { font-size: 11px; color: var(--text3); }
+
+  /* ── SCHOLARSHIPS ── */
+  .um-scholar-card {
+    background: color-mix(in srgb, var(--success) 7%, var(--surface));
+    border: 1px solid color-mix(in srgb, var(--success) 20%, var(--border));
+    border-radius: 12px; padding: 14px 15px;
+  }
+  .um-scholar-header { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+  .um-scholar-icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: color-mix(in srgb, var(--success) 15%, var(--surface));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; flex-shrink: 0;
+  }
+  .um-scholar-name { font-size: 13px; font-weight: 600; color: var(--success); line-height: 1.3; }
+  .um-scholar-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .um-scholar-tag {
+    background: color-mix(in srgb, var(--success) 10%, var(--surface));
+    border: 1px solid color-mix(in srgb, var(--success) 22%, var(--border));
+    border-radius: 6px; padding: 3px 10px;
+    font-size: 11px; color: var(--text2);
+  }
+
+  /* ── SALARIES ── */
+  .um-salary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(205px, 1fr));
+    gap: 8px;
+  }
+  .um-salary-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 14px;
+    display: flex; flex-direction: column; gap: 4px;
+    transition: border-color 0.18s;
+  }
+  .um-salary-card:hover { border-color: color-mix(in srgb, var(--success) 40%, var(--border)); }
+  .um-salary-job { font-size: 12px; color: var(--text3); line-height: 1.3; }
+  .um-salary-amt {
+    font-family: 'Syne', sans-serif;
+    font-size: 17px; font-weight: 800;
+    color: var(--success); letter-spacing: -0.3px;
+  }
+
+  /* ── SCROLLBARS ── */
+  .um-sidebar::-webkit-scrollbar,
+  .um-main::-webkit-scrollbar { width: 4px; }
+  .um-sidebar::-webkit-scrollbar-track,
+  .um-main::-webkit-scrollbar-track { background: transparent; }
+  .um-sidebar::-webkit-scrollbar-thumb,
+  .um-main::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+`;
+
+const STAT_COLORS = [
+  'var(--accent2)',
+  'var(--success)',
+  'var(--warning)',
+  'var(--accent3)',
+];
+
+function getIntakeDesc(name, fallback) {
+  if (!name) return fallback;
+  const n = name.toLowerCase();
+  if (n.includes('august') || n.includes('fall'))
+    return 'Most popular intake — all undergraduate and graduate programs open, maximum flexibility for international students.';
+  if (n.includes('january') || n.includes('spring'))
+    return 'Great alternative for those who missed Fall deadlines or want to start mid-year. Covers most programs.';
+  if (n.includes('may') || n.includes('summer'))
+    return 'Limited but specialized programs — ideal for graduate study or a lighter academic start.';
+  if (n.includes('october'))
+    return 'All the courses are available in this intake for international students.';
+  return fallback || '';
+}
 
 export default function UniversityModal({ uni, onClose }) {
-  const [courseTab, setCourseTab] = React.useState(0);
+  const [courseTab, setCourseTab] = useState(0);
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -143,151 +349,181 @@ export default function UniversityModal({ uni, onClose }) {
   const stats = uni.overviewStats || {};
   const courses = uni.topCourses || [];
   const activeCourses = courses[courseTab]?.cardDetail || [];
+  const rankings = uni.rankings || [];
+  const intakes = uni.intakes || [];
+  const scholarships = uni.scholarships || [];
+  const salaries = uni.placement?.averageSalary || [];
+
+  const statItems = [
+    { val: stats.acceptanceRate, label: 'Acceptance Rate' },
+    { val: stats.placementRate, label: 'Placement Rate' },
+    { val: stats.totalInternationalStudents, label: 'Intl. Students' },
+    { val: stats.studentFacultyRatio, label: 'Student : Faculty' },
+  ].filter(x => x.val);
+
+  const logoSrc = uni.universityLogo?.imageUrl || uni.image?.imageUrl;
 
   return (
-    <div style={s.overlay} onClick={e => e.target === e.currentTarget && onClose()}>
-      <div style={s.modal} className="fade-in">
-        {/* Header */}
-        <div style={s.header}>
-          {uni.universityBannerImage ? (
-            <img src={uni.universityBannerImage} alt="" style={s.bannerImg}
-              onError={e => { e.target.style.display = 'none'; }} />
-          ) : (
-            <div style={{ ...s.bannerImg, background: 'linear-gradient(135deg, #1a1a2e, #0f3460)' }} />
-          )}
-          <div style={s.overlay2} />
-          <button style={s.closeBtn} onClick={onClose}>✕</button>
-          <div style={s.headerContent}>
-            <div style={s.logoBox}>
-              {(uni.universityLogo?.imageUrl || uni.image?.imageUrl) ? (
-                <img src={uni.universityLogo?.imageUrl || uni.image?.imageUrl} style={s.logoImg}
-                  alt={uni.universityName || uni.name || 'University Logo'} onError={e => { e.target.style.display = 'none'; }} />
-              ) : <span style={{ fontSize: 28 }}>🎓</span>}
-            </div>
-            <div style={s.titleArea}>
-              <div style={s.uniName}>{uni.universityName || uni.name || 'University Name Not Available'}</div>
-              <div style={s.uniSub}>
-                {uni.extraDetail && `${uni.extraDetail} `}
-                {(uni.location || uni.country) && `• ${uni.location || uni.country}`}
+    <>
+      <style>{MODAL_CSS}</style>
+
+      <div className="um-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+        <div className="um-modal">
+
+          {/* ── HEADER ── */}
+          <div className="um-header">
+            {uni.universityBannerImage
+              ? <img src={uni.universityBannerImage} alt="" className="um-banner-img"
+                onError={e => e.target.style.display = 'none'} />
+              : <div className="um-banner-fallback" />}
+            <div className="um-banner-grid" />
+            <div className="um-banner-grad" />
+
+            <button className="um-close" onClick={onClose} title="Close">✕</button>
+
+            <div className="um-header-content">
+              <div className="um-logo-box">
+                {logoSrc
+                  ? <img src={logoSrc} className="um-logo-img" alt=""
+                    onError={e => e.target.style.display = 'none'} />
+                  : <span style={{ fontSize: 30 }}>🎓</span>}
               </div>
+              <div className="um-title-area">
+                <div className="um-uni-name">{uni.universityName || uni.name || 'University'}</div>
+                <div className="um-uni-sub">
+                  {uni.extraDetail || ''}
+                  {(uni.location || uni.country) ? ` · ${uni.location || uni.country}` : ''}
+                </div>
+              </div>
+              {rankings.length > 0 && (
+                <div className="um-rank-badge">#{rankings[0].title} Ranked</div>
+              )}
             </div>
           </div>
-        </div>
 
-        {/* Body */}
-        <div style={s.body}>
+          {/* ── BODY ── */}
+          <div className="um-body">
 
-          {/* Overview stats */}
-          {(stats.acceptanceRate || stats.placementRate || stats.totalInternationalStudents || stats.studentFacultyRatio) && (
-            <div style={s.grid2}>
-              {stats.acceptanceRate && (
-                <div style={s.statBox}>
-                  <div style={s.statVal}>{stats.acceptanceRate}</div>
-                  <div style={s.statLabel}>Acceptance Rate</div>
-                </div>
-              )}
-              {stats.placementRate && (
-                <div style={s.statBox}>
-                  <div style={{ ...s.statVal, color: 'var(--success)' }}>{stats.placementRate}</div>
-                  <div style={s.statLabel}>Placement Rate</div>
-                </div>
-              )}
-              {stats.totalInternationalStudents && (
-                <div style={s.statBox}>
-                  <div style={{ ...s.statVal, color: 'var(--warning)' }}>{stats.totalInternationalStudents}</div>
-                  <div style={s.statLabel}>Intl. Students</div>
-                </div>
-              )}
-              {stats.studentFacultyRatio && (
-                <div style={s.statBox}>
-                  <div style={{ ...s.statVal, color: 'var(--accent3)' }}>{stats.studentFacultyRatio}</div>
-                  <div style={s.statLabel}>Student:Faculty Ratio</div>
-                </div>
-              )}
-            </div>
-          )}
+            {/* ── SIDEBAR ── */}
+            <aside className="um-sidebar">
 
-          {/* Rankings */}
-          {(uni.rankings || []).length > 0 && (
-            <div style={s.section}>
-              <div style={s.sectionTitle}>🏆 Rankings</div>
-              <div style={s.rankGrid}>
-                {uni.rankings.map((r, i) => (
-                  <div key={i} style={s.rankChip}>
-                    <div style={s.rankVal}>{r.title}</div>
-                    <div style={s.rankSub}>{r.subTitle}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Courses */}
-          {courses.length > 0 && (
-            <div style={s.section}>
-              <div style={s.sectionTitle}>📚 Top Courses</div>
-              <div style={s.courseTab}>
-                {courses.map((c, i) => (
-                  <button key={i} style={s.tabBtn(courseTab === i)} onClick={() => setCourseTab(i)}>{c.name}</button>
-                ))}
-              </div>
-              <div style={s.courseList}>
-                {activeCourses.map((c, i) => (
-                  <div key={i} style={s.courseRow}>
-                    <span style={s.courseName}>{c.courseName}</span>
-                    <div style={s.courseMeta}>
-                      {c.title1 && <div style={{ color: 'var(--accent2)', fontWeight: 600 }}>{c.title1}</div>}
-                      {c.title2 && <div>{c.title2}</div>}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Intakes */}
-          {(uni.intakes || []).length > 0 && (
-            <div style={s.section}>
-              <div style={s.sectionTitle}>📅 Intakes</div>
-              {uni.intakes.map((intake, i) => (
-                <div key={i} style={s.intakeChip(i)}>
-                  <div style={s.intakeName}>{intake.intake}</div>
-                  {intake.description && <div style={s.intakeDesc}>{intake.description}</div>}
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Scholarships */}
-          {(uni.scholarships || []).length > 0 && (
-            <div style={s.section}>
-              <div style={s.sectionTitle}>🎓 Scholarships</div>
-              {uni.scholarships.map((sch, i) => (
-                <div key={i} style={s.scholarCard}>
-                  <div style={s.scholarName}>{sch.name}</div>
-                  <div style={s.scholarDetail}>
-                    {(sch.detail || []).map((d, j) => <span key={j}>{d}</span>)}
+              {statItems.length > 0 && (
+                <div className="um-section">
+                  <div className="um-section-title"><span className="um-dot" />Overview</div>
+                  <div className="um-stats-grid">
+                    {statItems.map((x, i) => (
+                      <div key={i} className="um-stat-box">
+                        <div className="um-stat-val" style={{ color: STAT_COLORS[i] }}>{x.val}</div>
+                        <div className="um-stat-label">{x.label}</div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
+              )}
 
-          {/* Salary */}
-          {(uni.placement?.averageSalary || []).length > 0 && (
-            <div style={s.section}>
-              <div style={s.sectionTitle}>💼 Average Salaries</div>
-              {uni.placement.averageSalary.slice(0, 6).map((s2, i) => (
-                <div key={i} style={s.salaryRow}>
-                  <span style={s.salaryJob}>{s2.expenceType}</span>
-                  <span style={s.salaryAmt}>{s2.totalSalary}</span>
+              {rankings.length > 0 && (
+                <div className="um-section">
+                  <div className="um-section-title"><span className="um-dot" />Rankings</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {rankings.map((r, i) => (
+                      <div key={i} className="um-rank-chip">
+                        <div className="um-rank-val">{r.title}</div>
+                        <div className="um-rank-sub">{r.subTitle}</div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              ))}
-            </div>
-          )}
+              )}
 
+              {intakes.length > 0 && (
+                <div className="um-section">
+                  <div className="um-section-title"><span className="um-dot" />Intakes</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {intakes.map((intake, i) => {
+                      const name = intake.intake || intake;
+                      const desc = getIntakeDesc(name, intake.description || '');
+                      return (
+                        <div key={i} className={`um-intake-chip ${i % 2 === 0 ? 'alt-a' : 'alt-b'}`}>
+                          <div className="um-intake-name">{name}</div>
+                          {desc && <div className="um-intake-desc">{desc}</div>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </aside>
+
+            {/* ── MAIN ── */}
+            <main className="um-main">
+
+              {courses.length > 0 && (
+                <div className="um-section">
+                  <div className="um-section-title"><span className="um-dot" />Top Courses</div>
+                  <div className="um-tab-row">
+                    {courses.map((c, i) => (
+                      <button key={i}
+                        className={`um-tab${courseTab === i ? ' active' : ''}`}
+                        onClick={() => setCourseTab(i)}>
+                        {c.name}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="um-course-grid">
+                    {activeCourses.map((c, i) => (
+                      <div key={i} className="um-course-card">
+                        <span className="um-course-name">{c.courseName}</span>
+                        {c.title1 && <span className="um-course-m1">{c.title1}</span>}
+                        {c.title2 && <span className="um-course-m2">{c.title2}</span>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {scholarships.length > 0 && (
+                <div className="um-section">
+                  <div className="um-section-title"><span className="um-dot" />Scholarships</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {scholarships.map((sch, i) => (
+                      <div key={i} className="um-scholar-card">
+                        <div className="um-scholar-header">
+                          <div className="um-scholar-icon">🎓</div>
+                          <div style={{ flex: 1 }}>
+                            <div className="um-scholar-name">{sch.name}</div>
+                          </div>
+                        </div>
+                        {(sch.detail || []).length > 0 && (
+                          <div className="um-scholar-tags">
+                            {sch.detail.map((d, j) => (
+                              <span key={j} className="um-scholar-tag">{d}</span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {salaries.length > 0 && (
+                <div className="um-section">
+                  <div className="um-section-title"><span className="um-dot" />Average Salaries</div>
+                  <div className="um-salary-grid">
+                    {salaries.slice(0, 8).map((item, i) => (
+                      <div key={i} className="um-salary-card">
+                        <div className="um-salary-job">{item.expenceType}</div>
+                        <div className="um-salary-amt">{item.totalSalary}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+            </main>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
