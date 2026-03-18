@@ -219,6 +219,20 @@ export default function UniversityCard({ uni, onClick }) {
         <span style={styles.viewBtn}>
           View <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </span>
+        <span>
+          {uni.universityUrl && (
+            <div style={{ marginTop: 8 }}>
+              <a
+                href={uni.universityUrl.startsWith('http') ? uni.universityUrl : `https://${uni.universityUrl}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={styles.viewBtn}
+              >
+                Visit Website <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+              </a>
+            </div>
+          )}
+        </span>
       </div>
     </div>
   );

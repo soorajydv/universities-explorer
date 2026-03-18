@@ -394,6 +394,18 @@ export default function UniversityModal({ uni, onClose }) {
                   {uni.extraDetail || ''}
                   {(uni.location || uni.country) ? ` · ${uni.location || uni.country}` : ''}
                 </div>
+                {uni.universityUrl && (
+                  <div style={{ marginTop: 8 }}>
+                    <a
+                      href={uni.universityUrl.startsWith('http') ? uni.universityUrl : `https://${uni.universityUrl}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3 py-1 text-sm font-semibold border rounded hover:bg-indigo-100 hover:-translate-y-1 transition-all duration-200"
+                    >
+                      Visit Website →
+                    </a>
+                  </div>
+                )}
               </div>
               {rankings.length > 0 && (
                 <div className="um-rank-badge">#{rankings[0].title} Ranked</div>
